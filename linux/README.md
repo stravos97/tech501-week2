@@ -230,4 +230,172 @@ _For AWS/GCP: Use respective "Create Image" functions in cloud consoles_
     `pm2 save`
     
     `pm2 startup`
+
+**Process Management Guide**
+
+---
+
+### 1. What is a Process?
+
+- A **process** is a running instance of a program (e.g., a web browser, text editor).
+- Each process has a unique **PID (Process ID)**.
+- Processes exist in a hierarchy: **parent processes** create **child processes** (e.g., a terminal spawning a program).
+
+---
+
+### 2. Basic Commands to View Processes
+
+#### `ps`
+
+Lists running processes in your current terminal session:
+
+`ps`
+
+_Example Output:_
+
+yaml
+
+Copy
+
+`PID   TTY      TIME     CMD 1234  pts/0    00:00:00 bash 5678  pts/0    00:00:00 ps`
+
+- **PID**: Process ID.
+- **TTY**: Terminal associated with the process.
+- **CMD**: Command that started the process.
+
+#### `ps -ef` or `ps aux`
+
+View **all** system processes, including those from other users or background services:
+
+`ps -ef` # Shows full-format listing  
+`ps aux` # Shows detailed resource usage
+
+#### `top`
+
+Interactive real-time view of processes and resource usage:
+
+`top`
+
+- Press **`Shift + M`** to sort by **memory usage**.
+- Press **`Shift + P`** to sort by **CPU usage**.
+- Press **`q`** to quit.
+
+---
+
+### 3. Managing Processes
+
+#### Terminate a Process
+
+- **Graceful termination** (asks the process to close):
     
+    `kill <PID>` or `kill -15 <PID>`
+    
+- **Force termination** (use if the process is unresponsive):
+    
+    `kill -9 <PID>`
+    
+
+#### Kill by Process Name
+
+`killall <process_name>` # Kills all processes with this name  
+`pkill <process_name>` # Flexible matching (e.g., partial names)
+
+#### Find a Process
+
+`pgrep firefox` # Get PID of Firefox  
+`pidof firefox` # Alternative to pgrep
+
+---
+
+### 4. Background & Foreground Jobs
+
+- **Run a command in the background**:
+    
+    `sleep 100 &` # The `&` runs it in the background
+    
+- **List background jobs** in your current terminal:
+    
+    `jobs -l` # Shows job numbers and PIDs
+    
+- **Bring a job to the foreground**:
+    
+    `fg %1` # Replace `1` with the job number
+    
+- **Pause/resume jobs**:
+    
+    - Press **`Ctrl + Z`** to pause a foreground job.
+        
+    - Resume it in the background with:
+        
+        `bg %1`
+        
+
+---
+
+### 5. Parent-Child Relationships
+
+- **PPID (Parent PID)**: The PID of the process that created a child process.
+    
+- View parent-child relationships:
+    
+    `ps -o pid,ppid,cmd` # Shows PID, PPID, and command
+    
+
+_Example Output:_
+
+yaml
+
+Copy
+
+`PID   PPID  CMD 
+5678   1234  /usr/bin/firefox`
+
+---
+
+### 6. Zombie Processes
+
+#### What is a Zombie?
+
+- A process that has finished but isn’t fully removed from the system.
+- Shows as **`<defunct>`** or **`Z`** in `ps`/`top`.
+- Harmless but consumes a PID slot.
+
+#### Fix Zombies
+
+1. Terminate the **parent process**:
+    
+    `kill <parent_PID>`
+    
+2. If that fails, reboot your system.
+    
+
+---
+
+### 7. Key Signals for Process Control
+
+|Signal|Name|Purpose|
+|---|---|---|
+|`SIGHUP` (1)|Hangup|Reload a process (e.g., servers)|
+|`SIGINT` (2)|Interrupt|Stop a process (like `Ctrl+C`)|
+|`SIGTERM` (15)|Terminate|Ask politely to exit (default)|
+|`SIGKILL` (9)|Kill|Force immediate termination|
+|`SIGSTOP`|Stop|Pause a process (`Ctrl+Z`)|
+|`SIGCONT`|Continue|Resume a paused process|
+
+---
+
+### 8. Best Practices
+
+- Use **`SIGTERM`** (`kill -15`) before **`SIGKILL`** to allow cleanup.
+- Avoid `killall` if unsure—it can terminate multiple processes at once.
+- Check for zombies occasionally with `ps aux | grep 'Z'`.
+
+---
+
+**Quick Reference Cheat Sheet**
+
+`ps` # List your terminal's processes  
+`top` # Live system monitor  
+`kill -9 1234` # Force-kill PID 1234  
+`jobs -l` # List background jobs  
+`fg %2` # Bring job 2 to the foreground
